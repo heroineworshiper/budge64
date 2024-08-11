@@ -529,7 +529,7 @@ LastLineIndex:
 
 ; drawing commands are encoded in the following tables
 ; 1 byte in each table per object
-CODE_arr:    .byte 2,   0
+CODE_arr:    .byte 0,   1
 SCALE_arr:   .byte 15,  15
 X_arr:       .byte 127, 127
 Y_arr:       .byte 100, 100

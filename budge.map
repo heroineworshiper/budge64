@@ -1,7 +1,7 @@
 Modules list:
 -------------
 budge.o:
-    CODE              Offs=000000  Size=001406  Align=000F3  Fill=0000
+    CODE              Offs=000000  Size=001409  Align=000F3  Fill=0000
     START             Offs=000000  Size=00000E  Align=00001  Fill=0000
 
 
@@ -10,7 +10,7 @@ Segment list:
 Name                   Start     End    Size  Align
 ----------------------------------------------------
 START                 000800  00080D  00000E  00001
-CODE                  00080D  001C12  001406  000F3
+CODE                  00080D  001C15  001409  000F3
 
 
 Exports list by name:

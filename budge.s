@@ -71,6 +71,8 @@ BMP0_SCREEN = $5c00
 BMP1 = $a000
 BMP1_SCREEN = $8000
 
+; uncomment to use XOR to clear
+;USE_XOR := 1
                    
 ; self modifying code
 OpDEY := $88 ;DEY opcode
@@ -168,15 +170,17 @@ loopcol:
 
 ; draw it
 loop:
+.ifndef USE_XOR
+        jsr clear
+.endif
+
         jsr CRUNCH
-        ldx #0
+; animate a shuttle
+;        ldx #0
 ;        jsr inc_yrot
-;        jsr inc_xrot
+; animate a cube
+        ldx #1
         jsr inc_zrot
-;        ldx #1
-;        jsr inc_yrot
-;        jsr inc_xrot
-;        jsr inc_zrot
         jmp loop
 
 hang:
@@ -505,8 +509,11 @@ _InxDexNop1:    nop                       ; self-mod INX/DEX/NOP
 SameColumn:     sty     ysave             ;
                 ldy     Div7Tab,x         ; XOR-draw the point
                 lda     (hptr),y      
+.ifdef USE_XOR
                 eor     HiResBitTab,x
-;                ora     HiResBitTab,x 
+.else
+                ora     HiResBitTab,x 
+.endif
                 sta     (hptr),y      
                 ldy     ysave         
                 jmp     VertDomLine   
@@ -547,8 +554,11 @@ ytablemod3:     lda     YTableHi_BMP0,y   ;
 SameRow:        sty     ysave             ;
                 ldy     Div7Tab,x         ; XOR-draw the point
                 lda     (hptr),y       
+.ifdef USE_XOR
                 eor     HiResBitTab,x 
-;                ora     HiResBitTab,x  
+.else
+                ora     HiResBitTab,x  
+.endif
                 sta     (hptr),y       
                 ldy     ysave          
                 jmp     HorzLoop       
