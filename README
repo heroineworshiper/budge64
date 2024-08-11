@@ -6,7 +6,7 @@ Adam Williams broadcast@earthling.net
 Disassembled by Andy McFadden
 https://6502disassembly.com/a2-budge3d/
 
-Compile with make.  Run with ./budge.sh
+Compile with make.  Run with ./budge.sh on VICE
 The BASIC arrays have been ported to assembly in tables.s: CODE_arr
 
 Couldn't find any source code for the demo shown on youtube so instead
