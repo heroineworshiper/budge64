@@ -20,4 +20,5 @@ budge2.s, tables2.s: 127 angle steps
     XOR is slower than clearing the screen for all but the smallest model
     There are 2 shuttle animations & 1 cube animation enabled with macros.
 
+hextoasm.py: convert disassembled data into .byte directives for ca65
 tables.py: creates the angle tables in tables2.s
