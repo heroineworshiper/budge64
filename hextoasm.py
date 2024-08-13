@@ -4,8 +4,6 @@
 # convert block hex codes to comma separated assembly
 # usage hextoasm.py > /tmp/x
 
-import os
-import sys
 
 output = ""
 total = 0
