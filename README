@@ -19,6 +19,14 @@ budge2.s, tables2.s: 127 angle steps
     Uncomment USE_XOR to use XOR to clear the screen instead of memset
     XOR is slower than clearing the screen for all but the smallest model
     There are 2 shuttle animations & 1 cube animation enabled with macros.
+    The shuttle animations have some keyboard commands:
+        space - toggle animation
+        a/d - rotate x
+        w/s - rotate y
+        z/x - rotate z
+        +/- - change scale
+    There is no key repeat
+
 
 hextoasm.py: convert disassembled data into .byte directives for ca65
 tables.py: creates the angle tables in tables2.s

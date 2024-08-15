@@ -88,6 +88,12 @@ temp2 := $fc ; 4 bytes
 temp3 := $fd ; 4 bytes
 temp4 := $fe ; 4 bytes
 
+; CRUNCH
+first_line := $45
+last_line  := $46
+SavedShapeIndex := $47
+
+
 .segment "DATA"
 
 
@@ -939,10 +945,6 @@ TransformDone:  rts
 ;*  2 - erase, transform, draw                                                  *
 ;*  3 - erase                                                                   *
 ;********************************************************************************
-
-first_line := $45
-last_line  := $46
-SavedShapeIndex := $47
 
 CRUNCH:
 ; 

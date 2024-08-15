@@ -29,11 +29,17 @@ OpINX := $e8 ;INX opcode
 OpNOP := $ea ;NOP opcode
 
 ; globals
-current_page := $05 ; Current hi-res page id.
+current_page := $02 ; Current hi-res page id.
+is_animated := $03
 temp1 := $fb
 temp2 := $fc
 temp3 := $fd
 temp4 := $fe
+
+; CRUNCH
+first_line := $45
+last_line  := $46
+SavedShapeIndex := $47
 
 .segment "DATA"
 
@@ -67,6 +73,7 @@ mane:
 
     lda #0
     sta current_page
+    sta is_animated
 ; set up the bitmap
     jsr flip_page
     jsr clear
@@ -118,28 +125,139 @@ loopcol:
 ;        SET_LITERAL16 temp1, YTableHi_BMP1
 ;        PRINT_HEX16 temp1
 
-; draw it
 loop:
 .ifndef USE_XOR
         jsr clear
 .endif
 
+; draw it
         jsr CRUNCH
-.ifdef SHUTTLE1
+
+loop2:
+;    lda $c5 ; no delay between repeats
+    jsr GETIN ; no key repeat but more usable than no delay
+    sta temp1
+;    cmp #$40
+    cmp #$00
+    bne keyboard0
+        jmp keyboard_done ; no key pressed
+keyboard0:
+;    cmp #$3c
+    cmp #' '
+    bne keyboard1
+        lda is_animated
+        eor #1
+        sta is_animated
+;            bne keyboard_done
+;                SET_LITERAL8 is_animated, 0
+            jmp keyboard_done
+STEP := 2
+keyboard1:
+;    cmp #$9     ; up
+    cmp #'w'
+    bne keyboard2
+        SUB_LITERAL XROT_arr, XROT_arr, STEP
+        jmp keyboard_done
+keyboard2:
+;    cmp #$d     ; down
+    cmp #'s'
+    bne keyboard3
+        ADD_LITERAL XROT_arr, XROT_arr, STEP
+        jmp keyboard_done
+keyboard3:
+;    cmp #$a     ; left
+    cmp #'a'
+    bne keyboard4
+        SUB_LITERAL YROT_arr, YROT_arr, STEP
+        jmp keyboard_done
+keyboard4:
+;    cmp #$12     ; right
+    cmp #'d'
+    bne keyboard5
+        ADD_LITERAL YROT_arr, YROT_arr, STEP
+        jmp keyboard_done
+keyboard5:
+;    cmp #$c     ; counterclockwise
+    cmp #'z'
+    bne keyboard6
+        SUB_LITERAL ZROT_arr, ZROT_arr, STEP
+        jmp keyboard_done
+keyboard6:
+;    cmp #$17     ; clockwise
+    cmp #'x'
+    bne keyboard7
+        ADD_LITERAL ZROT_arr, ZROT_arr, STEP
+        jmp keyboard_done
+keyboard7:
+;    cmp #$28     ; bigger
+    cmp #'+'
+    bne keyboard8
+        inc SCALE_arr
+        jmp keyboard_done
+keyboard8:
+;    cmp #$2b     ; smaller
+    cmp #'-'
+    bne keyboard_done
+        dec SCALE_arr
+        jmp keyboard_done
+
+keyboard_done:
+; handle animations
 ; shuttle animation 1
-        ldx #0
-        jsr inc_zrot
+.ifdef SHUTTLE1
+    ldx #0
 .endif
 .ifdef SHUTTLE2
-; shuttle animation 2
-        ldx #0
-        jsr inc_zrot
+    ldx #0
 .endif
 .ifdef CUBE_DEMO
-; animate a cube
-        ldx #1
-        jsr inc_zrot
+    ldx #1
 .endif
+
+    lda is_animated
+    cmp #1
+    bne animation2
+; shuttle animation 1
+        inc ZROT_arr,x
+        jmp animation3
+animation2:
+    cmp #2
+    bne animation3
+; shuttle animation 2
+        inc ZROT_arr,x
+
+; clamp rotations
+animation3:
+    lda XROT_arr,x
+    and #$7f
+    sta XROT_arr,x
+    lda YROT_arr,x
+    and #$7f
+    sta YROT_arr,x
+    lda ZROT_arr,x
+    and #$7f
+    sta ZROT_arr,x
+    lda SCALE_arr,x
+    and #$f
+    sta SCALE_arr,x
+
+; print the shuttle coords
+    PRINT_TEXT animated
+    PRINT_HEX8 is_animated
+    PRINT_TEXT xrot_t
+    PRINT_HEX8 XROT_arr
+    PRINT_TEXT yrot_t
+    PRINT_HEX8 YROT_arr
+    PRINT_TEXT zrot_t
+    PRINT_HEX8 ZROT_arr
+    PRINT_TEXT scale_t
+    PRINT_HEX8 SCALE_arr
+    PRINT_TEXT key_t
+    PRINT_HEX8 temp1
+    lda #$0a
+    jsr CIOUT
+    lda #$00
+    jsr CIOUT
 
 
 ; promote from draw to erase if using XOR
@@ -154,43 +272,13 @@ promote1:
         bne promote2
             inc CODE_arr + 1
 promote2:
-.endif
+.endif ; USE_XOR
 
         jmp loop
 
 hang:
     jmp hang
     rts
-
-inc_yrot:
-    inc YROT_arr,x
-    lda YROT_arr,x
-    cmp #127
-    bcc inc_yrot2 ; yrot < 127
-        lda #0
-        sta YROT_arr,x
-inc_yrot2:
-        rts
-
-inc_xrot:
-    inc XROT_arr,x
-    lda XROT_arr,x
-    cmp #127
-    bcc inc_xrot2 ; xrot < 127
-        lda #0
-        sta XROT_arr,x
-inc_xrot2:
-        rts
-
-inc_zrot:
-    inc ZROT_arr,x
-    lda ZROT_arr,x
-    cmp #127
-    bcc inc_zrot2 ; zrot < 127
-        lda #0
-        sta ZROT_arr,x
-inc_zrot2:
-        rts
 
 
 
@@ -902,9 +990,6 @@ TransformDone:  rts
 ;*  3 - erase                                                                   *
 ;********************************************************************************
 
-first_line := $45
-last_line  := $46
-SavedShapeIndex := $47
 
 CRUNCH:
 ; 
@@ -1015,6 +1100,26 @@ transformloop1:
 transformloop2:
     .byte "transformloop2 "
     .byte $00    ; null terminator for the message
+
+animated:
+    .byte "animated "
+    .byte $00    ; null terminator for the message
+xrot_t:
+    .byte "xrot "
+    .byte $00    ; null terminator for the message
+yrot_t:
+    .byte "yrot "
+    .byte $00    ; null terminator for the message
+zrot_t:
+    .byte "zrot "
+    .byte $00    ; null terminator for the message
+scale_t:
+    .byte "scale "
+    .byte $00    ; null terminator for the message
+key_t:
+    .byte "key "
+    .byte $00    ; null terminator for the message
+
 
 
 .include "common.s"
